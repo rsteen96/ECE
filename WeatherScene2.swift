@@ -7,6 +7,7 @@ Copyright © 2017 ECE. All rights reserved.
 
 import SpriteKit
 import AVFoundation
+import Foundation
 
 private let xMovable = "xMovable"
 private let yMovable = "yMovable"
@@ -14,14 +15,13 @@ private let xyMovable = "xyMovable"
 private let unMovable = "unMovable"
 private let skyMovable = "skyMovable"
 
-
-struct Zone2 {
+struct hZone {
     
-    let lowerCoord : Int
-    let upperCoord : Int
+    let leftCoord : Int
+    let rightCoord : Int
     
 }
-/*
+
 enum precipitation : String {
     
     case rain
@@ -31,16 +31,63 @@ enum precipitation : String {
     case outOfZone
     
 }
-*/
+
+struct vZone {
+    
+    let lowerCoord : Int
+    let upperCoord : Int
+    
+}
+
+struct altitudeMap {
+    
+    let altitudeZone1 : hZone
+    let altitude1 : Int
+    let altitudeZone2 : hZone
+    let altitude2 : Int
+    let altitudeZone3 : hZone
+    let altitude3 : Int
+    let altitudeZone4 : hZone
+    let altitude4 : Int
+    let altitudeZone5 : hZone
+    let altitude5 : Int
+    let altitudeZone6 : hZone
+    let altitude6 : Int
+    
+    init() {
+    altitudeZone1 = hZone(leftCoord: 0, rightCoord: 230)
+    altitude1 = 410
+    altitudeZone2 = hZone(leftCoord: 231, rightCoord: 445)
+    altitude2 = 466
+    altitudeZone3 = hZone(leftCoord: 446, rightCoord: 562)
+    altitude3 = 532
+    altitudeZone4 = hZone(leftCoord: 563, rightCoord: 680)
+    altitude4 = 490
+    altitudeZone5 = hZone(leftCoord: 681, rightCoord: 765)
+    altitude5 = 500
+    altitudeZone6 = hZone(leftCoord: 766, rightCoord: 1024)
+    altitude6 = 610
+    }
+    
+}
 
 class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     
-    let lakeZone = Zone2(lowerCoord: 0, upperCoord: 258)
-    let rainZone = Zone2(lowerCoord: 259, upperCoord: 426)
-    let hailZone = Zone2(lowerCoord: 427, upperCoord: 594)
-    let snowZone = Zone2(lowerCoord: 595, upperCoord: 760)
+    let lakeZone = vZone(lowerCoord: 0, upperCoord: 1)
+    let rainZone = vZone(lowerCoord: 2, upperCoord: 426)
+    let hailZone = vZone(lowerCoord: 427, upperCoord: 594)
+    let snowZone = vZone(lowerCoord: 595, upperCoord: 760)
     
-    var background = SKSpriteNode(imageNamed: "background")
+    let altitudeZone1 = hZone(leftCoord: 0, rightCoord: 230)
+    let altitudeZone2 = hZone(leftCoord: 231, rightCoord: 445)
+    let altitudeZone3 = hZone(leftCoord: 446, rightCoord: 562)
+    let altitudeZone4 = hZone(leftCoord: 563, rightCoord: 680)
+    let altitudeZone5 = hZone(leftCoord: 681, rightCoord: 765)
+    let altitudeZone6 = hZone(leftCoord: 766, rightCoord: 1024)
+
+    var backgroundMap = altitudeMap()
+    
+    var background = SKSpriteNode(imageNamed: "plainBackground")
     var menuButton = SKSpriteNode(imageNamed: "menuButton")
     var selectedNode = SKSpriteNode()
     var precipitationObjects: [SKSpriteNode] = []
@@ -53,6 +100,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     var playRainSound = false
     var hasStormed = false
     var shouldItRain = 1
+    var precipFallsCheck = 1
     
     /*
      
@@ -100,6 +148,13 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    func precipGoesDown() -> Void {
+        for precip in precipitationObjects {
+            precip.position.y -= 6
+        }
+    }
+    
+    
     //Creates a sprite based off the location of another sprite
     func addSprite(location: CGPoint, zPosition: Double, spriteFile: String, physicsCategory: UInt32, collidesWith: UInt32, movability: String, isCircular: Bool) -> SKSpriteNode {
         
@@ -141,6 +196,12 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         background.addChild(sun)
         skyObjects.append(sun)
         
+        let cloud = addSprite(xLocation: 150, yLocation: 750, zPosition: 1, spriteFile: "cloud", physicsCategory: 0b10, collidesWith: 0, movability: skyMovable, isCircular: true)
+        background.addChild(cloud)
+        skyObjects.append(cloud)
+        
+        UIScreen.main.brightness = CGFloat(1.0)
+        
         menuButton.position = CGPoint(x: 1000, y: 744)
         menuButton.zPosition = 1
         menuButton.name = unMovable
@@ -166,7 +227,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
         switch Int(weather.position.y) {
             
-        case lakeZone.lowerCoord..<lakeZone.upperCoord:      //syntax indicates if weather.position.x is between the given
+        case lakeZone.lowerCoord..<lakeZone.upperCoord:      //syntax indicates if weather.position.x is in the given zone
             return .lake
         case snowZone.lowerCoord..<snowZone.upperCoord:
             return .snow
@@ -183,7 +244,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     
     func isThereWeather(weather: SKSpriteNode) -> Bool {
         
-        if ( Int(weather.position.x) < lakeZone.upperCoord ) {return false}
+        if ( Int(weather.position.x) < 200 ) {return false}
         else {return true}
         
     }
@@ -215,92 +276,133 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     
     func cloudsRain() -> Void {
         
-        //Rain a bit slower
-        if shouldItRain % 10 == 0 {
+        formCloud()
+        thunderAndLightning()
             
-            shouldItRain = 1
+        var counter = 0 // to be used to index through skyObjects
             
-            thunderAndLightning()
-            
-            for skyObject in skyObjects {
+        for skyObject in skyObjects {
                 
-                
-                
-                if skyObject.physicsBody?.categoryBitMask == 0b10 && skyObject.alpha > 0 && isThereWeather(weather: skyObject) {
-                    
-                    let precipitationType = whereIsTheWeather(weather: skyObject)
-                    var precipCategory = UInt32()
-                    
-                    switch precipitationType {
-                    
-                    case .rain: precipCategory = 0b110
-                        break;
-                    case .hail: precipCategory = 0b1001
-                        break;
-                    case .snow: precipCategory = 0b1010
-                        break;
-                    default:
-                        break;
+            lakeEvaporatesIntoClouds(cloud: skyObject)
             
-                    }
+            if shouldItRain % 10 == 0 { //Rain a bit slower
+                
+            //if its a cloud and its alpha value is above 0 and its not over the lake, in other words, if this cloud will precipitate
+            if skyObject.physicsBody?.categoryBitMask == 0b10 && skyObject.alpha > 0 && isThereWeather(weather: skyObject) {
                     
-                    let leftTime = DispatchTime.now() + 0.025
-                    let midTime = DispatchTime.now() + 0.05
-                    let rightTime = DispatchTime.now() + 0.075
+                let precipitationType = whereIsTheWeather(weather: skyObject)
+                var precipCategory = UInt32()
                     
-                    //Divide the cloud into sections and create precipitation in each section (at a random location)
-                    let radius = UInt32(15) + arc4random_uniform(UInt32(25))
+                switch precipitationType {
                     
-                    let precipLeftSide = UInt32(skyObject.position.x) - radius
-                    let precipMiddle = UInt32(skyObject.position.x)
-                    let precipRightSide = UInt32(skyObject.position.x) + radius
+                case .rain: precipCategory = 0b110
+                    break;
+                case .hail: precipCategory = 0b1001
+                    break;
+                case .snow: precipCategory = 0b1010
+                    break;
+                default:
+                    break;
+            
+                }
+                
+                thisCloudRains(cloud: skyObject, precipType: precipitationType.rawValue, counter: counter, precipCategory: precipCategory)
+                
+               }
+                
+            counter += 1
+                
+            } // end shouldItRain if
+                
+        } // end for
+        
+        shouldItRain+=1
+        //shouldItRain%=10
+    }
+    
+    // if the sun is over the lake, the given cloud is formed.
+    func lakeEvaporatesIntoClouds(cloud: SKSpriteNode) {
+        
+        //If the cloud is over the lake and it's definitely a cloud
+        if isThereWeather(weather: cloud) == false && cloud.physicsBody?.categoryBitMask == 0b10 {
+            
+            //Not yet in the sky, still not fully opaque, and the sun is over the lake
+            if cloud.position.y <= 600 && cloud.alpha <= 1 && isThereWeather(weather: skyObjects[0]) == false {
+                
+                fillCloud(cloud: cloud)
+                
+            }
+                
+                //If it reaches the sky but is not yet fully opaque, make it more opaque (as long as the sun is there)
+            else if cloud.position.y >= 600 && isThereWeather(weather: skyObjects[0]) == false {
+                
+                if cloud.alpha < 1 {
                     
-                    DispatchQueue.main.asyncAfter(deadline: leftTime){
-                        let precipitationLeft = self.addSprite(xLocation: Double(precipLeftSide), yLocation: Double(skyObject.position.y-75), zPosition: 2, spriteFile: "steady-"+precipitationType.rawValue, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
-                        self.background.addChild(precipitationLeft)
-                        self.precipitationObjects.append(precipitationLeft)
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: midTime){
-                        let precipitationMid = self.addSprite(xLocation: Double(precipMiddle), yLocation: Double(skyObject.position.y-75), zPosition: 2, spriteFile: "steady-"+precipitationType.rawValue, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
-                        self.background.addChild(precipitationMid)
-                        self.precipitationObjects.append(precipitationMid)
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: rightTime){
-                        let precipitationRight = self.addSprite(xLocation: Double(precipRightSide), yLocation: Double(skyObject.position.y-75), zPosition: 2, spriteFile: "steady-"+precipitationType.rawValue, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
-                        self.background.addChild(precipitationRight)
-                        self.precipitationObjects.append(precipitationRight)
-                    }
-                    
-                    skyObject.alpha -= 0.02     //as the cloud precipitates, it will start to fade
+                    cloud.alpha += 0.0025
                     
                 }
                 
             }
             
-        } else {
-            
-            shouldItRain+=1
-            
         }
         
     }
     
+    // spawns precipitation of the given type and category under the given cloud, and deletes the cloud if it's alpha has decreased below 0
+    func thisCloudRains(cloud: SKSpriteNode, precipType: String, counter: Int, precipCategory: UInt32) {
+        
+        let leftTime = DispatchTime.now() + 0.025
+        let midTime = DispatchTime.now() + 0.05     //Three staggered timers
+        let rightTime = DispatchTime.now() + 0.075
+        
+        //Divide the cloud into sections and create precipitation in each section (at a random location)
+        let radius = UInt32(15) + arc4random_uniform(UInt32(25))
+        
+        let precipLeftSide = UInt32(cloud.position.x) - radius
+        let precipMiddle = UInt32(cloud.position.x)     //Three staggered positions under the cloud
+        let precipRightSide = UInt32(cloud.position.x) + radius
+        
+        DispatchQueue.main.asyncAfter(deadline: leftTime){
+            let precipitationLeft = self.addSprite(xLocation: Double(precipLeftSide), yLocation: Double(cloud.position.y-75), zPosition: 2, spriteFile: "steady-"+precipType, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
+            self.background.addChild(precipitationLeft)
+            self.precipitationObjects.append(precipitationLeft)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: midTime){   //Three timer methods staggered by timers.
+            let precipitationMid = self.addSprite(xLocation: Double(precipMiddle), yLocation: Double(cloud.position.y-75), zPosition: 2, spriteFile: "steady-"+precipType, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
+            self.background.addChild(precipitationMid)
+            self.precipitationObjects.append(precipitationMid)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: rightTime){
+            let precipitationRight = self.addSprite(xLocation: Double(precipRightSide), yLocation: Double(cloud.position.y-75), zPosition: 2, spriteFile: "steady-"+precipType, physicsCategory: UInt32(precipCategory), collidesWith: 0, movability: unMovable, isCircular: true)
+            self.background.addChild(precipitationRight)
+            self.precipitationObjects.append(precipitationRight)
+        }
+        
+        cloud.alpha -= 0.02     //as the cloud precipitates, it will start to fade
+        if cloud.alpha <= 0 {
+            
+            cloud.removeFromParent()
+            skyObjects.remove(at: counter)
+            
+        }
+        
+    }
     /*
      
      //-----------------------------------------------------------------------------------------------------------------------------\\
      
-     ///////////////////////////////////////////////////////////////////////////////////////
-     ////////////////////////////////// WEATHER ACTIONS ////////////////////////////////////
-     ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     ////////////////////////////////// WEATHER ACTIONS ////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
      \\-----------------------------------------------------------------------------------------------------------------------------//
      
      
      
      //Changes the cloud's opacity and height as it forms */
-    func formCloud(cloud: SKSpriteNode) -> Void {
+    func fillCloud(cloud: SKSpriteNode) -> Void {
         
         cloud.alpha += 0.0025
         cloud.position.y += 2.5
@@ -310,112 +412,159 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     //Makes the precipitation fall, and removes it when it hits the ground
     func precipFalls() -> Void {
         
-        var rainCount = 0, hailCount = 0    //used to count how much rain or hail is on the screen
+        var rainCount = 0.0, hailCount = 0.0    //used to count how much rain or hail is on the screen
         
         for precipitation in precipitationObjects {
             
-            precipitation.position.y -= 6
-            
-            if shouldItRain % 10 == 0 {
-            
-            let precipType = whereIsTheWeather(weather: precipitation)
-            
-            if precipType == .rain { //if it's a raindrop, add it to the rain count
+            precipitation.position.y -= 6 // gravity - John Mayer
+           
+           // if precipFallsCheck % 10 == 0 { // slows down the heavy comparison swath of code
+             //   precipFallsCheck = 1
+                let precipType = whereIsTheWeather(weather: precipitation)
                 
-                if precipitation.physicsBody?.categoryBitMask != 0b110 {
+                // switching precipitation types as precipitation falls down screen
+                if precipType == .rain { //if it's a raindrop, add it to the rain count
                     
-                    let newRain = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-rain", physicsCategory: 0b110, collidesWith: 0, movability: unMovable, isCircular: true)
-                    precipitation.removeFromParent()
-                    self.background.addChild(newRain)
-                    self.precipitationObjects.append(newRain)
-                    hailCount-=1
                     rainCount+=1
                     
-                }
-                
-                
-                
-            } else if precipType == .hail {
-                
-                if precipitation.physicsBody?.categoryBitMask != 0b1001 {
+                    if precipitation.physicsBody?.categoryBitMask != 0b110 { // if not a raindrop but in the rain zone
+                        
+                        let newRain = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-rain", physicsCategory: 0b110, collidesWith: 0, movability: unMovable, isCircular: true)
+                        self.background.addChild(newRain)           //Create and append a raindrop and delete the imposter.
+                        self.precipitationObjects.append(newRain)
+                        
+                        precipitation.removeFromParent()
+                        hailCount-=1
+                        if let index = precipitationObjects.index(of: precipitation) {
+                            precipitationObjects.remove(at: index)
+                        }
+                        
+                    } else { // if it is a raindrop in the rainzone
+                        precipLands(precipitation: precipitation, precipCount: &rainCount, isItSnow: false)
+                    } //end bitmask if
                     
-                    let newHail = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-hail", physicsCategory: 0b1001, collidesWith: 0, movability: unMovable, isCircular: true)
-                    precipitation.removeFromParent()
-                    self.background.addChild(newHail)
-                    self.precipitationObjects.append(newHail)
+                } else if precipType == .hail { // if its in the hail zone
+                    
                     hailCount+=1
                     
-                }
-                
-               
-                
-            } /* else if precipType == .snow {
-                
-                if precipitation.physicsBody?.categoryBitMask != 0b1010 {
+                    if precipitation.physicsBody?.categoryBitMask != 0b1001 { // but its not hail
+                        
+                        //add hail
+                        let newHail = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-hail", physicsCategory: 0b1001, collidesWith: 0, movability: unMovable, isCircular: true)
+                        self.background.addChild(newHail)
+                        self.precipitationObjects.append(newHail)
+                        print(newHail.position)
+                        
+                        //remove imposter
+                        precipitation.removeFromParent()
+                        if let index = precipitationObjects.index(of: precipitation) {
+                            precipitationObjects.remove(at: index)
+                        }
+                        //snowCount-=1
+                        
+                    } else { // if it is hail
+                        
+                        precipLands(precipitation: precipitation, precipCount: &hailCount, isItSnow: false)
+                       
+                    } // end bitmask if
                     
-                    let newRain = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-snow", physicsCategory: 0b1010, collidesWith: 0, movability: unMovable, isCircular: true)
-                    precipitation.removeFromParent()
-                    self.background.addChild(newRain)
-                    self.precipitationObjects.append(newRain)
+                } else if precipType == .snow {
                     
-                }
+                    precipLands(precipitation: precipitation, precipCount: &hailCount, isItSnow: false)
+                    
+                } //end precipType if
                 
-            }
-            */
-            if precipitation.position.y < 100 {     //removes the precipitation when it hits the ground
-                
-                if precipType == .rain {
-                    
-                    rainCount -= 1  //decrement the rain count when the drop hits the ground
-                    
-                } else if precipType == .hail {
-                    
-                    hailCount -= 1
-                    
-                }
-                
-                precipitation.removeFromParent()
-                
-            }
+          //  } else {
+           //     precipFallsCheck+=1
+         //   }                           //end shouldItRain if
             
-        }
-        
-        //If it's raining but the rain sound isn't playing
-        if rainCount > 0 && playRainSound == false {
-            
-            playRainSound = true
-            //playSound("rainSound")
-            if playHailSound == false { UIScreen.main.brightness = CGFloat(0.8) }
-            
-        } else if rainCount == 0 && playRainSound == true { //If it's not raining but the sound is still playing
-            
-            playRainSound = false
-            //rainPlayer.stop()
-            if playHailSound == false { UIScreen.main.brightness = CGFloat(1.0) }
-        }
-        
-        if hailCount > 0 && playHailSound == false {
-            
-            playHailSound = true
-            //playSound("hailSound")
-            if playRainSound == false { UIScreen.main.brightness = CGFloat(0.8) }
-            
-        } else if hailCount == 0 && playHailSound == true {
-            
-            playHailSound = false
-            //hailPlayer.stop()
-            if playRainSound == false { UIScreen.main.brightness = CGFloat(1.0) }
-            
-        }
-        
+        } //end precipObjects for
+      
+        if precipFallsCheck % 10 == 0 {   }
+        precipSounds(rainCount: rainCount, hailCount: hailCount)
     }
+
+    func precipLands(precipitation: SKSpriteNode, precipCount: inout Double, isItSnow: Bool) -> Void {
+        
+        switch precipitation.position.x { // precipitation hits the ground at varying altitudes over the landscape
+            
+            case Int(backgroundMap.altitudeZone1.leftCoord) ..< Int(backgroundMap.altitudeZone1.rightCoord) && : // flatGround
+                
+                if Int(precipitation.position.y) < backgroundMap.altitude1, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            case backgroundMap.altitudeZone2.leftCoord ..< Int(backgroundMap.altitudeZone1.rightCoord): // footHills
+            
+                if precipitation.position.y < backgroundMap.altitude2, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            case backgroundMap.altitudeZone3.leftCoord ..< Int(backgroundMap.altitudeZone3.rightCoord): // mountains
+                
+                if precipitation.position.y < backgroundMap.altitude3, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            case backgroundMap.altitudeZone4.leftCoord ..< backgroundMap.altitudeZone4.leftCoord: // summit
+                
+                if precipitation.position.y < backgroundMap.altitude4, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            case backgroundMap.altitudeZone5.leftCoord ..< backgroundMap.altitudeZone5.leftCoord: // summit
+                
+                if precipitation.position.y < backgroundMap.altitude5, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            case backgroundMap.altitudeZone6.leftCoord ..< backgroundMap.altitudeZone6.leftCoord: // summit
+                
+                if precipitation.position.y < backgroundMap.altitude6, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+            
+            
+            default:
+                if precipitation.position.y < 100, let index = precipitationObjects.index(of: precipitation) {
+                    precipitation.removeFromParent()
+                    precipitationObjects.remove(at: index)
+                    if isItSnow {  /* precipCount += .01 */ } else {
+                        precipCount-=1
+                    }
+                }
+                break;
+        }
         
     }
     
-    //Called every frame, this function begins cloud formation if there are any clouds to be formed
-    func checkCloudFormation() -> Void {
+    //If the sun is over the lake and a cloud isn't being made, make a cloud and begin filling it, this function begins cloud formation if there are any clouds to be formed
+    func formCloud() -> Void {
         
-        //If the sun is over the lake and a cloud isn't being made, make a cloud and begin forming it
         if cloudIsCreating() == false && isThereWeather(weather: skyObjects[0]) == false{
             
             let cloudLocation = arc4random_uniform(UInt32(25)) + UInt32(102.5)
@@ -425,45 +574,13 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
             background.addChild(cloud)
             skyObjects.append(cloud)
             
-            formCloud(cloud: cloud)
-            
-        }
-        
-        //If there are still clouds to be formed while the sun is over the lake zone
-        if skyObjects.count > 1 {
-            
-            for skyObject in skyObjects {
-                
-                //If the cloud is over the lake and it hasn't fully formed
-                if isThereWeather(weather: skyObject) == false && skyObject.physicsBody?.categoryBitMask == 0b10 {
-                    
-                    //Not yet in the sky and still not fully opaque
-                    if skyObject.position.y <= 600 && skyObject.alpha <= 1 && isThereWeather(weather: skyObjects[0]) == false {
-                        
-                        formCloud(cloud: skyObject)
-                        
-                    }
-                        
-                        //If it reaches the sky but is not yet fully opaque, make it more opaque (as long as the sun is there)
-                    else if skyObject.position.y >= 600 && isThereWeather(weather: skyObjects[0]) == false {
-                        
-                        //cloudIsCreating = false
-                        
-                        if skyObject.alpha < 1 {
-                            
-                            skyObject.alpha += 0.0025
-                            
-                        }
-                        
-                    }
-                    
-                }
-                
-            }
+            fillCloud(cloud: cloud)
             
         }
         
     }
+
+    
     func startStorm(zone: precipitation) {
         
         hasStormed = true
@@ -488,42 +605,8 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    /*
-    func cloudsLeft(precipZone: precipitation) -> Int {
-        var rainClouds = 0
-        var hailClouds = 0
-        var snowClouds = 0
-        
-        for cloud in skyObjects {
-            
-            if cloud.physicsBody?.categoryBitMask == 0b10 {
-                
-                switch whereIsTheWeather(weather: cloud) {
-                case .snow : snowClouds+=1
-                break;
-                case .hail : hailClouds+=1
-                break;
-                case .rain : rainClouds+=1
-                break;
-                case .lake : break;
-                case .outOfZone : break;
-                }
-                
-            }
-        }
-        switch precipZone {
-            
-        case .snow : return snowClouds
-        case .hail : return hailClouds
-        case .rain : return rainClouds
-        case .lake : return -1
-        case .outOfZone : return -1
-            
-        }
-    }
-    */
-    
     func thunderAndLightning() -> Void {
+        
         if hasStormed == false && skyObjects.count > 2{
             
             var rainClouds = 0
@@ -594,6 +677,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
             self.hasStormed = false
         }
     }
+    
     //Goes through all of the clouds on the screen and removes the ones that are transparent
     func deleteClouds() -> Void {
         
@@ -761,6 +845,39 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
      
      
      // */
+    
+    func precipSounds(rainCount: Double, hailCount: Double) {
+        
+        //If it's raining but the rain sound isn't playing
+        if rainCount > 0 && playRainSound == false {
+            
+            playRainSound = true
+            playSound("rainSound")
+            if playHailSound == false { UIScreen.main.brightness = CGFloat(0.8) }
+            
+        } else if rainCount == 0 && playRainSound == true { //If it's not raining but the sound is still playing
+            
+            playRainSound = false
+            rainPlayer.stop()
+            if playHailSound == false { UIScreen.main.brightness = CGFloat(1.0) }
+        }
+        
+        if hailCount > 0 && playHailSound == false {
+            
+            playHailSound = true
+            //playSound("hailSound")
+            if playRainSound == false { UIScreen.main.brightness = CGFloat(0.8) }
+            
+        } else if hailCount == 0 && playHailSound == true {
+            
+            playHailSound = false
+            //hailPlayer.stop()
+            if playRainSound == false { UIScreen.main.brightness = CGFloat(1.0) }
+            
+        }
+
+    }
+    
     func playSound(_ soundFile: String) {
         
         
@@ -809,20 +926,23 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     //Called every frame, this method performs checks to see if there are any dispelled clouds to remove, as well as checks
     //to see if there's any precipitation to be moved
     override func update(_ currentTime: TimeInterval) {
-        
-        checkCloudFormation()
+    
         cloudsRain()
         precipFalls()
-        deleteClouds()
-        
-        
-        
+    
+    }
+    
+    func ourUpdate() {
+        cloudsRain()
+        precipFalls()
     }
     
     override init(size: CGSize) {
         
         super.init(size: size)
         loadSprites()   //load the background and sun when the scene initializes
+        //let updateTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(ourUpdate), userInfo: nil, repeats: true)
+        //let updateTimer2 = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(precipGoesDown), userInfo: nil, repeats: true)
         
     }
     
