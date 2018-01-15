@@ -37,9 +37,23 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
     //Load in "background" sprites
     var background = SKSpriteNode(imageNamed: "paperBackground")
     var sun = SKSpriteNode(imageNamed: "sun")
+    
     var menuButton = SKSpriteNode(imageNamed: "menuButton")
+    var horseButton = SKSpriteNode(imageNamed: "horseButton")
+    var lionButton = SKSpriteNode(imageNamed: "lionButton")
+    var chickenButton = SKSpriteNode(imageNamed: "chickenButton")
+    
+    var isLionThere = false
+    var isHorseThere = false
+    var isChickenThere = false
+    
+    var horse = SKSpriteNode(imageNamed: "horse-normal")
+    var lion = SKSpriteNode(imageNamed: "lion")
+    var chicken = SKSpriteNode(imageNamed: "chicken")
+    
     var lightSwitch = SKSpriteNode(imageNamed: "lightswitch")
     var lightSwitchOn = SKSpriteNode(imageNamed: "lightswitchon")
+    
     var appleTree = SKSpriteNode(imageNamed: "appleTree")
     var apples: [SKSpriteNode] = []
     
@@ -49,7 +63,6 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
     var selectedNode = SKSpriteNode()
     
     var applesEaten = 0
-    var appleIsFalling = false
     var chickensEaten = 0
     var foodEaten = 0
     
@@ -139,9 +152,9 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         self.background.name = unMovable
         addChild(background)
         
-        let horse = addSprite(xLocation: 150, yLocation: 100, spriteFile: "horse-normal", depth: 2, physicsCategory: 0b1, collidesWith: 0b101, movability: xMovable, isCircular: false)
-        let lion = addSprite(xLocation: 800, yLocation: 500, spriteFile: "lion", depth: 2, physicsCategory: 0b1001, collidesWith: 0b1010, movability: xMovable, isCircular: false)
-        let chicken = addSprite(xLocation: 500, yLocation: 500, spriteFile: "chicken", depth: 2, physicsCategory: 0b1010, collidesWith: 0, movability: xyMovable, isCircular: false)
+        horse = addSprite(xLocation: 150, yLocation: 100, spriteFile: "horse-normal", depth: 2, physicsCategory: 0b1, collidesWith: 0b101, movability: xMovable, isCircular: false)
+        lion = addSprite(xLocation: 800, yLocation: 500, spriteFile: "lion", depth: 2, physicsCategory: 0b1001, collidesWith: 0b1010, movability: xMovable, isCircular: false)
+        chicken = addSprite(xLocation: 500, yLocation: 500, spriteFile: "chicken", depth: 2, physicsCategory: 0b1010, collidesWith: 0, movability: xyMovable, isCircular: false)
         let balloon = addSprite(xLocation: 400, yLocation: 550, spriteFile: "looner", depth: 2, physicsCategory: 0b100, collidesWith: 0b11, movability: yMovable, isCircular: true)
         let sun = addSprite(xLocation: 800, yLocation: 650, spriteFile: "sun", depth: 2, physicsCategory: 0b11, collidesWith: 0b100, movability: lightMovable, isCircular: true)
         let lightBulb = addSprite(xLocation: 100, yLocation: 700, spriteFile: "lightBulb", depth: 2, physicsCategory: 0b1000, collidesWith: 0, movability: lightMovable, isCircular: true)
@@ -167,12 +180,27 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         menuButton.name = unMovable
         menuButton.alpha = 0.15
         
+        horseButton.position = CGPoint(x: 950, y: 744)
+        horseButton.zPosition = 3
+        horseButton.name = unMovable
+        horseButton.alpha = 0.15
+        
+        lionButton.position = CGPoint(x: 900, y: 744)
+        lionButton.zPosition = 3
+        lionButton.name = unMovable
+        lionButton.alpha = 0.15
+        
+        chickenButton.position = CGPoint(x: 850, y: 744)
+        chickenButton.zPosition = 3
+        chickenButton.name = unMovable
+        chickenButton.alpha = 0.15
+        
         lightSwitch.position = CGPoint(x: 200, y: 700)
         lightSwitch.zPosition = 1
         lightSwitch.name = unMovable
         lightSwitch.lightingBitMask = 0b0011
         
-        lightSwitchOn.position = CGPoint(x: 900, y: 300)
+        lightSwitchOn.position = CGPoint(x: 200, y: 700)
         lightSwitchOn.zPosition = 1
         lightSwitchOn.name = unMovable
         lightSwitchOn.lightingBitMask = 0b0011
@@ -180,6 +208,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         appleTree.position = CGPoint(x: 830, y: 140)
         appleTree.zPosition = 2
         appleTree.name = unMovable
+        appleTree.lightingBitMask = 0b0011
         
         bulbLightNode.position = CGPoint(x: lightBulb.position.x, y: lightBulb.position.y)
         bulbLightNode.categoryBitMask = 0b0011
@@ -189,6 +218,9 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         bulbLightNode.isEnabled = false
         
         background.addChild(menuButton)
+        background.addChild(horseButton)
+        background.addChild(chickenButton)
+        background.addChild(lionButton)
         background.addChild(lightSwitch)
     
     }
@@ -207,6 +239,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         
         foodEaten += 1
         let currentFoodEaten = foodEaten
+        if FoodName == "chicken" {isChickenThere = false}
         Food.removeFromParent()
         var gasDegree = ""
         let when = DispatchTime.now() + 7
@@ -301,8 +334,8 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                 apple = secondBody.node as? SKSpriteNode {
                 let xDistance = apple.position.x-horse.position.x
                 let yDistance = apple.position.y-horse.position.y
-                print(xDistance)
-                print(yDistance)
+                let xRange = horse.size.width/2
+                let yRange = horse.size.height/5
                 print("\n")
                 if xDistance > 140, xDistance < 180, yDistance > 0, yDistance < 60{  //mouth
                     eat(Eater: horse, EaterName: "horse", Food: apple, FoodName: "apple", Gas: "fart")
@@ -315,7 +348,13 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
             
             if let lion = firstBody.node as? SKSpriteNode, let
                 chicken = secondBody.node as? SKSpriteNode {
-                if abs(chicken.position.x-lion.position.x-50) < 10, abs(chicken.position.y-lion.position.y+50) < 10{
+                print("hit")
+                let xDistance = lion.position.x-chicken.position.x
+                let yDistance = lion.position.y-chicken.position.y
+                print(xDistance)
+                print(yDistance)
+                if xDistance > 190, xDistance < 250, yDistance < 0, yDistance > -75{
+                    print("hit2")
                     eat(Eater: lion, EaterName: "lion", Food: chicken, FoodName: "chicken", Gas: "burp")
                 }
             }
@@ -407,6 +446,39 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                     }
                 
                 // Flip light switch
+                case lionButton:
+                    if isLionThere {
+                        isLionThere = false
+                        lionButton.alpha = 1.0
+                        lion.removeFromParent()
+                    } else {
+                        isLionThere = true
+                        lionButton.alpha = 0.15
+                        addChild(lion)
+                    }
+                
+                case horseButton:
+                    if isHorseThere {
+                        isHorseThere = false
+                        horseButton.alpha = 1.0
+                        horse.removeFromParent()
+                    } else {
+                        isHorseThere = true
+                        horseButton.alpha = 0.15
+                        addChild(horse)
+                    }
+                
+                case chickenButton:
+                    if isChickenThere {
+                        isChickenThere = false
+                        chickenButton.alpha = 1.0
+                        chicken.removeFromParent()
+                    } else {
+                        isChickenThere = true
+                        chickenButton.alpha = 0.15
+                        addChild(chicken)
+                    }
+                
                 case lightSwitch:
                     bulbLightNode.isEnabled = true
                     lightSwitch.removeFromParent()
@@ -423,7 +495,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                     
                     playSound("rustle")
                     
-                    let when = DispatchTime.now() + 4
+                    let when = DispatchTime.now() + 2
                     
                     DispatchQueue.main.asyncAfter(deadline: when){  //after the sound has finished playing, create the apple
                         
@@ -501,7 +573,6 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
         let apple = self.addSprite(xLocation: xPosition+xRadius, yLocation: yPosition+yRadius, spriteFile: "apple", depth: 3, physicsCategory: 0b101, collidesWith: 0b1, movability: yMovable, isCircular: true)
         self.background.addChild(apple)
         apples.append(apple)
-        appleIsFalling = true
         applyGravity(objects: apples)
     }
     
@@ -510,7 +581,6 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
             if object.position.y >= 25, object.name == yMovable{   //if the apple hasn't hit the ground
                 object.position.y-=3.5    //make it hit the ground
             } else if object.position.y <= 25{
-                appleIsFalling = false  //apple is no longer falling if it has hit the ground
                 object.name = xyMovable
             }
         }
