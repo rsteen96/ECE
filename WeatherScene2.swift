@@ -11,11 +11,11 @@ import Foundation
 
 /*-----------------------------------------------------------------------------------------------------------------------------\\
  
-                    ///////////////////////////////////////////////////////////////////////////////////////
-                    ///////////////////////////////////// INITIALIZING ////////////////////////////////////
-                    ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////// INITIALIZING ////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
  
- \\-----------------------------------------------------------------------------------------------------------------------------*/
+ \\----------------------------------------------------------------------------------------------------------------------------*/
 
 private let xMovable = "xMovable"
 private let yMovable = "yMovable"
@@ -113,15 +113,15 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
     var shouldItRain = 1
     var precipFallsCheck = 1
     
-     /*-----------------------------------------------------------------------------------------------------------------------------\\
+/*-----------------------------------------------------------------------------------------------------------------------------\\
      
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        /////////////////////////////////////// SPRITES ///////////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     /////////////////////////////////////// SPRITES ///////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
-     \\-----------------------------------------------------------------------------------------------------------------------------*/
+\\-----------------------------------------------------------------------------------------------------------------------------*/
     
-     //Creates and returns a sprite based on X and Y coordinates (Doubles)
+    //Creates and returns a sprite based on X and Y coordinates (Doubles)
     func addSprite(xLocation: Double, yLocation: Double, zPosition: CGFloat, spriteFile: String, physicsCategory: UInt32, collidesWith: UInt32, movability: String, isCircular: Bool) -> SKSpriteNode {
         
         let sprite = SKSpriteNode(imageNamed: spriteFile)
@@ -139,14 +139,14 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         else {
             
             //If the sprite is non-circular, create a rectangle
-            sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size) // 1
+            sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
             
         }
         
-        sprite.physicsBody?.isDynamic = true // 2
-        sprite.physicsBody?.categoryBitMask = physicsCategory // 3
-        sprite.physicsBody?.contactTestBitMask = collidesWith // 4
-        sprite.physicsBody?.collisionBitMask = PhysicsCategory.None // 5
+        sprite.physicsBody?.isDynamic = true
+        sprite.physicsBody?.categoryBitMask = physicsCategory
+        sprite.physicsBody?.contactTestBitMask = collidesWith
+        sprite.physicsBody?.collisionBitMask = PhysicsCategory.None
         sprite.physicsBody?.usesPreciseCollisionDetection = true
         
         return sprite
@@ -162,20 +162,20 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
         if (isCircular) {
             
-            sprite.physicsBody = SKPhysicsBody(circleOfRadius: max(sprite.size.width/2,sprite.size.height/2)) // 1
+            sprite.physicsBody = SKPhysicsBody(circleOfRadius: max(sprite.size.width/2,sprite.size.height/2))
             
         }
             
         else {
             
-            sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size) // 1
+            sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
             
         }
         
-        sprite.physicsBody?.isDynamic = true // 2
-        sprite.physicsBody?.categoryBitMask = physicsCategory // 3
-        sprite.physicsBody?.contactTestBitMask = collidesWith // 4
-        sprite.physicsBody?.collisionBitMask = PhysicsCategory.None // 5
+        sprite.physicsBody?.isDynamic = true
+        sprite.physicsBody?.categoryBitMask = physicsCategory
+        sprite.physicsBody?.contactTestBitMask = collidesWith
+        sprite.physicsBody?.collisionBitMask = PhysicsCategory.None
         
         return sprite
         
@@ -204,15 +204,15 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
-     /*-----------------------------------------------------------------------------------------------------------------------------\\
+/*-----------------------------------------------------------------------------------------------------------------------------\\
      
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        ///////////////////////////////// LOCATION HANDLING ///////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////// LOCATION HANDLING ///////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
-     \\-----------------------------------------------------------------------------------------------------------------------------*/
+\\-----------------------------------------------------------------------------------------------------------------------------*/
     
-     //Checks the location of the given sprite and returns which zone it lies in
+    //Checks the location of the given sprite and returns which zone it lies in
     func whereIsTheWeather(weather: SKSpriteNode) -> precipitation {
         
         switch Int(weather.position.y) {
@@ -257,25 +257,21 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
                 
             }
             
-        } else {
-            
-            createCloud = true
-            
-        }
+        } else {createCloud = true}
         
         return createCloud
         
     }
     
-     /*-----------------------------------------------------------------------------------------------------------------------------\\
+/*-----------------------------------------------------------------------------------------------------------------------------\\
      
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        //////////////////////////////// WEATHER ACTIONS //////////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     //////////////////////////////// WEATHER ACTIONS //////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
-     \\-----------------------------------------------------------------------------------------------------------------------------*/
+\\-----------------------------------------------------------------------------------------------------------------------------*/
     
-     /********************************************************* CLOUDS **************************************************************/
+/********************************************************* CLOUDS **************************************************************/
     
     // if the sun is over the lake, the given cloud is formed.
     func lakeEvaporatesIntoClouds(cloud: SKSpriteNode) {
@@ -290,7 +286,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
                 
             }
                 
-                //If it reaches the sky but is not yet fully opaque, make it more opaque (as long as the sun is there)
+            //If it reaches the sky but is not yet fully opaque, make it more opaque (as long as the sun is there)
             else if cloud.position.y >= 600 && isThereWeather(weather: skyObjects[0]) == false {
                 
                 if cloud.alpha < 1 {
@@ -374,7 +370,6 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         } // end for
         
         shouldItRain+=1
-        //shouldItRain%=10
     }
     
     
@@ -399,9 +394,9 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
-     /****************************************************** PRECIPITATION ***********************************************************/
+/****************************************************** PRECIPITATION **********************************************************/
     
-    // spawns precipitation of the given type and category under the given cloud, and deletes the cloud if it's alpha has decreased below 0
+    //Spawns precipitation of the given type and category under the given cloud, and deletes the cloud if its alpha has decreased below 0
     func thisCloudRains(cloud: SKSpriteNode, precipType: String, counter: Int, precipCategory: UInt32) {
         
         let leftTime = DispatchTime.now() + 0.025
@@ -464,7 +459,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
                     
                     //add hail
                     let newRain = addSprite(location: precipitation.position, zPosition: 2, spriteFile: "steady-rain", physicsCategory: 0b110, collidesWith: 0, movability: unMovable, isCircular: true)
-                    addChild(newRain)           //Create and append a raindrop and delete the imposter.
+                    addChild(newRain)   //Create and append a raindrop and delete the imposter.
                     self.precipitationObjects.append(newRain)
                     
                     //remove imposter
@@ -516,6 +511,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    //
     func precipLands(precipitation: SKSpriteNode, precipCount: inout Double, isItSnow: Bool) -> Void {
         
         switch Int(precipitation.position.x) { // precipitation hits the ground at varying altitudes over the landscape
@@ -580,7 +576,6 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
                 }
             }
             
-            
         default:
             print("error, default case in precipFalls hit")
             break;
@@ -588,7 +583,7 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
-     /********************************************************* STORMS **************************************************************/
+/********************************************************* STORMS **************************************************************/
     
     func startStorm(zone: precipitation) {
         
@@ -671,7 +666,6 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
         DispatchQueue.main.asyncAfter(deadline: firstFlash){
             self.background.addChild(lightning)
-            //self.playSound("thunderSound")
         }
         DispatchQueue.main.asyncAfter(deadline: firstFlashEnds){
             lightning.removeFromParent()
@@ -686,15 +680,15 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
             self.hasStormed = false
         }
     }
+    
+/*-----------------------------------------------------------------------------------------------------------------------------\\
      
-     /*-----------------------------------------------------------------------------------------------------------------------------\\
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     //////////////////////////////// GESTURES AND COLLISION ///////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        //////////////////////////////// GESTURES AND COLLISION ///////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////
-     
-     \\-----------------------------------------------------------------------------------------------------------------------------*/
-
+\\-----------------------------------------------------------------------------------------------------------------------------*/
+    
     override func didMove(to view: SKView) {
         
         let gestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePanFrom(recognizer:)))
@@ -815,13 +809,13 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
-     /*-----------------------------------------------------------------------------------------------------------------------------\\
+/*-----------------------------------------------------------------------------------------------------------------------------\\
      
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        ///////////////////////////////////// MISCELLANEOUS ///////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     /////////////////////////////////////// SOUNDS ////////////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
      
-     \\-----------------------------------------------------------------------------------------------------------------------------*/
+\\-----------------------------------------------------------------------------------------------------------------------------*/
     
     func precipSounds(rainCount: Double, hailCount: Double) {
         
@@ -868,21 +862,18 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
             if soundFile == "rainSound" {
                 
                 rainPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: soundPath))
-                //guard let player = player else {return}
                 rainPlayer.prepareToPlay()
                 rainPlayer.play()
                 
             } else if soundFile == "hailSound" {
                 
                 hailPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: soundPath))
-                //guard let player = player else {return}
                 hailPlayer.prepareToPlay()
                 hailPlayer.play()
                 
             } else if soundFile == "thunderSound" {
                 
                 thunderPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: soundPath))
-                //guard let player = player else {return}
                 thunderPlayer.prepareToPlay()
                 thunderPlayer.play()
                 
@@ -900,6 +891,14 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
     }
     
+/*-----------------------------------------------------------------------------------------------------------------------------\\
+     
+                     ///////////////////////////////////////////////////////////////////////////////////////
+                     ///////////////////////////////////// MISCELLANEOUS ///////////////////////////////////
+                     ///////////////////////////////////////////////////////////////////////////////////////
+     
+\\-----------------------------------------------------------------------------------------------------------------------------*/
+    
     //Called every frame, this method performs checks to see if there are any dispelled clouds to remove, as well as checks
     //to see if there's any precipitation to be moved
     override func update(_ currentTime: TimeInterval) {
@@ -913,8 +912,6 @@ class WeatherScene2: SKScene, SKPhysicsContactDelegate {
         
         super.init(size: size)
         loadSprites()   //load the background and sun when the scene initializes
-        //let updateTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(ourUpdate), userInfo: nil, repeats: true)
-        //let updateTimer2 = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(precipGoesDown), userInfo: nil, repeats: true)
         
     }
     
