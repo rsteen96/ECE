@@ -1,4 +1,5 @@
 /*
+ /*
 WeatherScene.swift
 ECE-iOS application
 Created by ECE on 10/26/17.
@@ -18,10 +19,10 @@ private let skyMovable = "skyMovable"
 
 class WeatherScene: SKScene, SKPhysicsContactDelegate {
     
-    let lakeZone = Zone(leftCoord: 0, rightCoord: 255)
-    let rainZone = Zone(leftCoord: 256, rightCoord: 511)
-    let hailZone = Zone(leftCoord: 512, rightCoord: 767)
-    let snowZone = Zone(leftCoord: 768, rightCoord: 1023)
+    let lakeZone = hZone(leftCoord: 0, rightCoord: 255)
+    let rainZone = hZone(leftCoord: 256, rightCoord: 511)
+    let hailZone = hZone(leftCoord: 512, rightCoord: 767)
+    let snowZone = hZone(leftCoord: 768, rightCoord: 1023)
     
     var background = SKSpriteNode(imageNamed: "plainBackground")
     var menuButton = SKSpriteNode(imageNamed: "menuButton")
@@ -746,3 +747,4 @@ class WeatherScene: SKScene, SKPhysicsContactDelegate {
     }
 
 }
+*/

@@ -13,6 +13,8 @@
 
 //
 
+/*
+
 import SpriteKit
 import AVFoundation
 
@@ -37,7 +39,9 @@ struct PhysicsCategory {
     static let Lightning : UInt32 = 0b111      //7
     static let lightBulb : UInt32 = 0b1000     //8
     static let Hail      : UInt32 = 0b1001     //9
-    static let Snow      : UInt32 = 0b1010     //9
+    static let Snow      : UInt32 = 0b1010     //10
+    static let Ground    : UInt32 = 0b1011     //11
+    static let SnowCap   : UInt32 = 0b1100     //12
     
 }
 
@@ -445,4 +449,5 @@ class BoxScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 }
-
+ 
+*/

@@ -16,6 +16,7 @@ class MenuScene: SKScene {
     var horseButton = SKSpriteNode()
     let horseButtonTex = SKTexture(imageNamed: "horse-normal")
     var background = SKSpriteNode(imageNamed: "paperBackground")
+    var creditsLabel = SKLabelNode(fontNamed: "Baskerville")
     
     override func didMove(to view: SKView) {
         
@@ -29,8 +30,14 @@ class MenuScene: SKScene {
         self.background.zPosition = -1
         addChild(background)
         
+        creditsLabel.text = "Credits"
+        creditsLabel.fontSize = 65
+        creditsLabel.fontColor = SKColor.darkGray
+        creditsLabel.position = CGPoint(x: frame.midX, y: frame.midY-300)
+        
         self.addChild(cloudButton)
         self.addChild(horseButton)
+        self.addChild(creditsLabel)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -52,6 +59,14 @@ class MenuScene: SKScene {
                     self.view?.presentScene(scene, transition: transition)
                 }
             }
+            if node == creditsLabel {
+                if let view = view {
+                    let transition:SKTransition = SKTransition.fade(withDuration: 3)
+                    let scene:SKScene = CreditScene(size: self.size)
+                    self.view?.presentScene(scene, transition: transition)
+                }
+            }
         }
     }
 }
+

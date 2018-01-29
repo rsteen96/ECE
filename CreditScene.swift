@@ -5,12 +5,11 @@
 //  Created by Will McAllister on 1/22/18.
 //  Copyright © 2018 Will McAllister. All rights reserved.
 //
-
 import Foundation
 import SpriteKit
 
 class CreditScene: SKScene{
-
+    
     var background = SKSpriteNode(imageNamed: "paperBackground")
     var credits = SKSpriteNode(imageNamed: "creditsTransparent")
     
@@ -27,8 +26,5 @@ class CreditScene: SKScene{
     }
     
 }
-
-
-
 
 
