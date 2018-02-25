@@ -74,6 +74,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
     var apples: [SKSpriteNode] = []
     var chickenCoop = SKSpriteNode(imageNamed: "chickenCoop")
     var feathers: [SKSpriteNode] = []
+    var brood: [SKSpriteNode] = []
     
     var applesEaten = 0
     var chickensEaten = 0
@@ -587,6 +588,8 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                     lion.removeFromParent()
                     lionMouth.removeFromParent()
                     chickenCoop.removeFromParent()
+                    removeAllFromParent(vector: feathers)
+                    removeAllFromParent(vector: brood)
                     feathers.removeAll()
                 } else {
                     isLionThere = true
@@ -603,6 +606,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                     horse.removeFromParent()
                     horseMouth.removeFromParent()
                     appleTree.removeFromParent()
+                    removeAllFromParent(vector: apples)
                     apples.removeAll()
                 } else {
                     isHorseThere = true
@@ -659,6 +663,7 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
                     let yRadius = 25.0 - Double(arc4random_uniform(50))
                     
                     let chicken = self.addSprite(xLocation: Double(self.chickenCoop.position.x + self.chickenCoop.size.width/2) + xRadius, yLocation: Double(self.chickenCoop.position.y - self.chickenCoop.size.height/5) + yRadius, spriteFile: "chicken", depth: 2, physicsCategory: PhysicsCategory.Chicken, collidesWith: 0b10000, movability: xyMovable, isCircular: false)
+                    self.brood.append(chicken)
                     self.background.addChild(chicken)
                 }
                 break
@@ -702,6 +707,12 @@ class BoxScene2: SKScene, SKPhysicsContactDelegate {
     func createSceneContents() {
         self.scaleMode = .aspectFit
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
+    }
+    //removes all of the nodes in the given vector from the scene
+    func removeAllFromParent(vector: [SKSpriteNode]) {
+        for n in vector {
+            n.removeFromParent()
+        }
     }
     
     func playSound(_ soundFile: String) {
